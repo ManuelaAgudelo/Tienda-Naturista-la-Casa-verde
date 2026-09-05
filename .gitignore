@@ -1,0 +1,18 @@
+node_modules
+dist
+dist-ssr
+*.local
+.DS_Store
+artifact-app.html
+
+# Archivos fuente originales (ya procesados hacia src/data/ y src/assets/) —
+# no hacen falta para correr la app y algunos traen datos que no deben ser públicos
+# (el Excel trae el nombre de los propietarios de cada tienda).
+/Directorio.xlsx
+/Mi_Tienda_Naturista_Base_Maestra.pdf
+/Revista 1.png
+/Revista 2.png
+/logo.png
+/linea natural casa verde.pptx
+/WhatsApp Image*.jpeg
+test123.txt
