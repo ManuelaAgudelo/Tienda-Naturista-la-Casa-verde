@@ -2,6 +2,7 @@ node_modules
 dist
 dist-ssr
 *.local
+.env
 .DS_Store
 artifact-app.html
 
@@ -15,4 +16,3 @@ artifact-app.html
 /logo.png
 /linea natural casa verde.pptx
 /WhatsApp Image*.jpeg
-test123.txt

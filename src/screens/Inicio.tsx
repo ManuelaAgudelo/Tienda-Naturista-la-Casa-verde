@@ -1,10 +1,11 @@
 import { Link } from 'react-router-dom'
-import { GraduationCap, MessageCircle, MapPin, ArrowRight } from 'lucide-react'
+import { GraduationCap, MessageCircle, MapPin, ArrowRight, LogOut } from 'lucide-react'
 import logo from '../assets/logo.png'
 import { useProgreso } from '../lib/progreso'
 import { buscarClase, MODULOS } from '../data/curso'
 import { TIENDAS } from '../data/tiendas'
 import { Card, ProgressBar } from '../components/ui'
+import { supabase } from '../lib/supabase'
 
 export default function Inicio() {
   const { completadasCount, totalActivas, porcentaje, ultimaClaseId } = useProgreso()
@@ -14,7 +15,13 @@ export default function Inicio() {
 
   return (
     <div className="pb-28">
-      <div className="px-5 pt-8 pb-4 flex flex-col items-center text-center">
+      <div className="px-5 pt-8 pb-4 flex flex-col items-center text-center relative">
+        <button
+          onClick={() => supabase.auth.signOut()}
+          className="absolute top-6 right-5 flex items-center gap-1 text-xs text-[var(--color-ink-muted)]"
+        >
+          <LogOut size={14} /> Salir
+        </button>
         <img src={logo} alt="Mi Tienda Naturista - La Casa Verde" className="w-24 h-24 object-contain mb-3" />
         <h1 className="text-2xl font-semibold text-[var(--color-ink)]">Mi Tienda Naturista</h1>
         <p className="text-sm text-[var(--color-ink-muted)] mt-1 max-w-xs">
