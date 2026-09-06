@@ -132,6 +132,57 @@ function normalizar(s: string): string {
     .trim()
 }
 
+function distanciaLevenshtein(a: string, b: string): number {
+  const filas = a.length + 1
+  const columnas = b.length + 1
+  const matriz: number[][] = Array.from({ length: filas }, () => new Array(columnas).fill(0))
+  for (let i = 0; i < filas; i++) matriz[i][0] = i
+  for (let j = 0; j < columnas; j++) matriz[0][j] = j
+  for (let i = 1; i < filas; i++) {
+    for (let j = 1; j < columnas; j++) {
+      const costo = a[i - 1] === b[j - 1] ? 0 : 1
+      matriz[i][j] = Math.min(
+        matriz[i - 1][j] + 1,
+        matriz[i][j - 1] + 1,
+        matriz[i - 1][j - 1] + costo,
+      )
+    }
+  }
+  return matriz[filas - 1][columnas - 1]
+}
+
+interface SugerenciaProducto {
+  tipo: 'catalogo' | 'propio'
+  nombre: string
+  item: Producto | ProductoLineaPropia
+}
+
+// Cuando el usuario escribe mal el nombre de un producto (ej. "acaite de agacate"), se busca el
+// nombre real más parecido en AMBOS catálogos y se responde "¿quisiste decir...?" en vez de
+// simplemente decir que no hay información.
+function sugerirProductoParecido(texto: string): SugerenciaProducto | null {
+  const q = normalizar(texto)
+  if (q.length < 4) return null
+
+  let mejor: SugerenciaProducto | null = null
+  let mejorDistancia = Infinity
+
+  const evaluar = (nombre: string, item: Producto | ProductoLineaPropia, tipo: 'catalogo' | 'propio') => {
+    const nombreNorm = normalizar(nombre)
+    const distancia = distanciaLevenshtein(q, nombreNorm)
+    const umbral = Math.max(2, Math.floor(nombreNorm.length * 0.35))
+    if (distancia <= umbral && distancia < mejorDistancia) {
+      mejorDistancia = distancia
+      mejor = { tipo, nombre, item }
+    }
+  }
+
+  PRODUCTOS.forEach(p => evaluar(p.nombre, p, 'catalogo'))
+  LINEA_PROPIA.forEach(p => evaluar(p.nombre, p, 'propio'))
+
+  return mejor
+}
+
 function buscarProductoPorNombre(texto: string): Producto | null {
   const q = normalizar(texto)
   // match exacto o por slug primero
@@ -151,11 +202,11 @@ function buscarLineaPropiaPorNombre(texto: string): ProductoLineaPropia | null {
   const q = normalizar(texto)
   const exacto = LINEA_PROPIA.find(p => normalizar(p.nombre) === q)
   if (exacto) return exacto
+  // coincidencia por nombre completo contenido en el mensaje (o viceversa) - nunca por una sola
+  // palabra suelta, para no confundir "Aceite de aguacate" con "Aceite de Orégano con Aguacate"
   const candidatos = LINEA_PROPIA.filter(p => {
     const nombreNorm = normalizar(p.nombre)
-    // usar solo la primera palabra del nombre (evita falsos positivos con nombres largos entre parentesis)
-    const primeraPalabra = nombreNorm.split(/[\s(]/)[0]
-    return primeraPalabra.length > 2 && contienePalabraOFrase(q, primeraPalabra)
+    return q.includes(nombreNorm) || nombreNorm.includes(q)
   })
   if (candidatos.length >= 1) {
     return candidatos.sort((a, b) => b.nombre.length - a.nombre.length)[0]
@@ -243,7 +294,7 @@ function formatearListaCategoria(categoriaSlug: string): string {
   const nombreCategoria = productos[0].categoria
   const lista = productos.slice(0, 10).map(p => `• ${p.nombre}`).join('\n')
   const extra = productos.length > 10 ? `\n...y ${productos.length - 10} más.` : ''
-  return `🌿 Productos relacionados con ${nombreCategoria}:\n\n${lista}${extra}\n\nPregúntame por el nombre de cualquiera de estos para más detalle.`
+  return `🌿 ¡Claro! Esto es lo que tenemos para ${nombreCategoria.toLowerCase()}:\n\n${lista}${extra}\n\nPregúntame por el nombre de cualquiera para conocer más detalles.`
 }
 
 export function responderAsistente(mensaje: string): string {
@@ -254,7 +305,7 @@ export function responderAsistente(mensaje: string): string {
   }
 
   if (SALUDOS.some(s => texto.includes(s)) && texto.length < 25) {
-    return 'Hola 🌿 Soy tu Asistente Verde. Puedes preguntarme por el nombre de un producto (ej. "Aceite de aguacate") o por una necesidad (ej. "¿Qué tienen para el sistema digestivo?").'
+    return '¡Hola! 🌿 Qué bueno tenerte por aquí. Pregúntame por el nombre de un producto (ej. "Aceite de aguacate"), por una molestia o necesidad (ej. "¿qué tienen para la digestión?"), o si buscas una tienda cerca de ti. Estoy para ayudarte 😊'
   }
 
   const producto = buscarProductoPorNombre(texto)
@@ -269,11 +320,31 @@ export function responderAsistente(mensaje: string): string {
   const porDiagnostico = buscarPorDiagnostico(texto)
   if (porDiagnostico) return formatearRecomendacionDiagnostico(porDiagnostico)
 
-  return `${SIN_INFORMACION} Intenta con el nombre exacto de un producto o con una categoría como "sistema digestivo", "piel" o "articulaciones".`
+  if (contienePalabraOFrase(texto, 'tienda') || contienePalabraOFrase(texto, 'tiendas') || contienePalabraOFrase(texto, 'sucursal')) {
+    return '📍 ¡Con gusto te ayudo a encontrarla! Ve a la pestaña "Tiendas" aquí abajo y escribe tu ciudad o municipio — ahí tengo el listado completo con dirección y teléfono de cada una.'
+  }
+
+  if (contienePalabraOFrase(texto, 'receta') || contienePalabraOFrase(texto, 'recetas')) {
+    return 'Por ahora no tengo recetas cargadas 🍃 — en cuanto La Casa Verde las publique, te las puedo compartir aquí mismo. Mientras tanto, puedo contarte sobre cualquiera de nuestros productos naturales, ¡pregúntame el que quieras!'
+  }
+
+  if (contienePalabraOFrase(texto, 'naturismo') || contienePalabraOFrase(texto, 'medicina natural')) {
+    return '🌱 Todo eso lo explicamos a fondo en el Módulo 2 de tu curso, "Introducción al Naturismo" — ahí vas a entender la historia y los fundamentos de la medicina natural paso a paso. Y si quieres, aquí mismo te cuento sobre algún producto puntual o para qué molestia buscas ayuda natural.'
+  }
+
+  const sugerencia = sugerirProductoParecido(texto)
+  if (sugerencia) {
+    const info = sugerencia.tipo === 'catalogo'
+      ? formatearProducto(sugerencia.item as Producto)
+      : formatearProductoLineaPropia(sugerencia.item as ProductoLineaPropia)
+    return `¿Quisiste decir "${sugerencia.nombre}"? 🌿 Aquí te cuento sobre ese:\n\n${info}`
+  }
+
+  return `${SIN_INFORMACION} 🌿 Intenta con el nombre de un producto (aunque no estés segura de cómo se escribe, yo te ayudo a encontrarlo), o cuéntame para qué molestia o necesidad buscas algo natural.`
 }
 
-export const MENSAJE_BIENVENIDA = 'Hola, soy tu Asistente Verde 🌿'
+export const MENSAJE_BIENVENIDA = '¡Hola! Soy tu Asistente Verde 🌿'
 export const SUBTITULO_BIENVENIDA =
-  'Pregúntame sobre productos, categorías y bienestar. Te ayudaré a encontrar información de La Casa Verde.'
+  'Pregúntame lo que quieras sobre productos naturales, tiendas o medicina natural — te ayudo a encontrarlo, aunque no recuerdes bien el nombre.'
 export const AVISO_SEGURIDAD =
   'Esta información es educativa: los productos ayudan como complemento, no curan ni reemplazan un tratamiento médico. Consulta siempre con tu médico.'

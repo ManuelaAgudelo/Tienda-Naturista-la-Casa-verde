@@ -46,8 +46,8 @@ export const MODULOS: Modulo[] = [
     titulo: 'Introducción al Naturismo',
     bloqueado: false,
     clases: [
-      { id: '2.1', numero: '2.1', titulo: 'Introducción al Naturismo', recurso: 'Historia y Evolución de la Medicina Natural', youtubeId: 'oAN6EX93Ml8', estado: 'en_revision', notaPendiente: 'El dueño del curso aún está confirmando si este es el video correcto para esta clase.' },
-      { id: '2.2', numero: '2.2', titulo: 'Introducción al Naturismo II', recurso: 'Medicina Natural II', youtubeId: 'JsF_XLoSc8M', estado: 'en_revision', notaPendiente: 'El dueño del curso aún está confirmando si este es el video correcto para esta clase.' },
+      { id: '2.1', numero: '2.1', titulo: 'Introducción al Naturismo', recurso: 'Historia y Evolución de la Medicina Natural', youtubeId: 'oAN6EX93Ml8', estado: 'video' },
+      { id: '2.2', numero: '2.2', titulo: 'Introducción al Naturismo II', recurso: 'Medicina Natural II', youtubeId: 'JsF_XLoSc8M', estado: 'video' },
     ],
   },
   {
