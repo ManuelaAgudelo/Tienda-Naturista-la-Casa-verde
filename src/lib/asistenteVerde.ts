@@ -58,6 +58,72 @@ const SINONIMOS_CATEGORIA: Record<string, string> = {
   'linfatico': 'sistema-linfatico',
 }
 
+// Enfermedades/diagnósticos que el usuario puede nombrar -> productos de la línea propia que,
+// según el fabricante, PUEDEN AYUDAR como complemento (nunca se presentan como cura). Todos estos
+// productos y sus beneficios ya existen en lineaPropia.ts; aquí solo se indexan por diagnóstico.
+const DIAGNOSTICO_A_PRODUCTOS: Record<string, string[]> = {
+  'diabetes': ['Glidit'],
+  'azucar alta': ['Glidit'],
+  'glucosa alta': ['Glidit'],
+  'hipertension': ['Bar-Press', 'Viacir'],
+  'presion alta': ['Bar-Press', 'Viacir'],
+  'colesterol': ['Cholaverd', 'Bar-Press'],
+  'trigliceridos': ['Cholaverd', 'Bar-Press'],
+  'artritis': ['Art', 'Nutriflex', 'Gl-Samin'],
+  'artrosis': ['Art', 'Nutriflex', 'Gl-Samin'],
+  'osteoporosis': ['Cicalmag', 'Colmin'],
+  'gastritis': ['Ulcik', 'Gast-Calen', 'Gaflox'],
+  'ulcera': ['Ulcik', 'Gast-Calen', 'Gaflox'],
+  'colon irritable': ['Viscum', 'Veralverd'],
+  'estreñimiento': ['Casklax', 'Barremax (laxante adultos)'],
+  'prostata': ['Gland Prot', 'Prost-San'],
+  'menopausia': ['Femever'],
+  'menstrual': ['Femever', 'Verafem (jarabe)'],
+  'ansiedad': ['Ashwagandha Complex (con orégano y citrato de magnesio)', 'Aswagandha (tabletas)'],
+  'estres': ['Ashwagandha Complex (con orégano y citrato de magnesio)', 'Aswagandha (tabletas)'],
+  'insomnio': ['Valeriana + Toronjil + Pasiflora'],
+  'anemia': ['Ferronaf', 'Vita-franc'],
+  'calculos renales': ['Renaver', 'Chancapiedra'],
+  'higado graso': ['Lim-Est', 'Heplop', 'Bilax'],
+  'cirrosis': ['Lim-Est', 'Carduus Mariannus 3D'],
+  'varices': ['Viacir', 'Cirfin'],
+  'mala circulacion': ['Viacir', 'Cirfin'],
+  'cancer': ['Grabiola', 'Clorofil Med'],
+  'alzheimer': ['Sangritor'],
+  'parkinson': ['Sangritor'],
+  'disfuncion erectil': ['Forza Maxin'],
+  'migraña': ['Certyl'],
+  'dolor de cabeza': ['Certyl'],
+  'acne': ['Gualasan', 'Llenodig'],
+  'sinusitis': ['Luffa Oper 6CH Spray Nasal', 'Argentin'],
+  'rinitis': ['Argentin'],
+  'bronquitis': ["Bronki'Flu", 'Eukmeil'],
+}
+
+function buscarPorDiagnostico(texto: string): ProductoLineaPropia[] | null {
+  const q = normalizar(texto)
+  const claves = Object.keys(DIAGNOSTICO_A_PRODUCTOS).sort((a, b) => b.length - a.length)
+  for (const clave of claves) {
+    if (contienePalabraOFrase(q, clave)) {
+      const nombres = DIAGNOSTICO_A_PRODUCTOS[clave]
+      const productos = nombres
+        .map(n => LINEA_PROPIA.find(p => p.nombre === n))
+        .filter((p): p is ProductoLineaPropia => !!p)
+      if (productos.length > 0) return productos
+    }
+  }
+  return null
+}
+
+function formatearRecomendacionDiagnostico(productos: ProductoLineaPropia[]): string {
+  const lineas = ['🌿 Esto es lo que tenemos que puede ayudar como complemento:', '']
+  productos.forEach(p => {
+    lineas.push(`• ${p.nombre}${p.claims[0] ? ` — ${p.claims[0]}` : ''}`)
+  })
+  lineas.push('', 'Pregúntame por el nombre de cualquiera para ver todos sus detalles.', '', RECORDATORIO_MEDICO)
+  return lineas.join('\n')
+}
+
 function normalizar(s: string): string {
   return s
     .toLowerCase()
@@ -154,7 +220,6 @@ function formatearProducto(p: Producto): string {
     lineas.push('Todavía no tengo la descripción oficial detallada de este producto.', '')
   }
   lineas.push(`CATEGORÍA: ${p.categoria}`)
-  lineas.push(`PRECIO: $${p.precioTexto}`)
   lineas.push('', RECORDATORIO_MEDICO)
   return lineas.join('\n')
 }
@@ -176,7 +241,7 @@ function formatearListaCategoria(categoriaSlug: string): string {
   const productos = PRODUCTOS.filter(p => p.categoriaSlug === categoriaSlug)
   if (productos.length === 0) return SIN_INFORMACION
   const nombreCategoria = productos[0].categoria
-  const lista = productos.slice(0, 10).map(p => `• ${p.nombre} — $${p.precioTexto}`).join('\n')
+  const lista = productos.slice(0, 10).map(p => `• ${p.nombre}`).join('\n')
   const extra = productos.length > 10 ? `\n...y ${productos.length - 10} más.` : ''
   return `🌿 Productos relacionados con ${nombreCategoria}:\n\n${lista}${extra}\n\nPregúntame por el nombre de cualquiera de estos para más detalle.`
 }
@@ -200,6 +265,9 @@ export function responderAsistente(mensaje: string): string {
 
   const categoria = buscarCategoria(texto)
   if (categoria) return formatearListaCategoria(categoria)
+
+  const porDiagnostico = buscarPorDiagnostico(texto)
+  if (porDiagnostico) return formatearRecomendacionDiagnostico(porDiagnostico)
 
   return `${SIN_INFORMACION} Intenta con el nombre exacto de un producto o con una categoría como "sistema digestivo", "piel" o "articulaciones".`
 }
