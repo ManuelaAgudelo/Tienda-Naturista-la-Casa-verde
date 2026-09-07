@@ -2056,5 +2056,67 @@ export const LINEA_PROPIA: ProductoLineaPropia[] = [
       "Manzana verde",
       "Té verde"
     ]
+  },
+  {
+    "id": "lp-140",
+    "nombre": "Nutrafer",
+    "claims": [
+      "Puede ayudar a mejorar el deseo, la libido y el rendimiento",
+      "Ayuda a mantener erecciones más firmes y duraderas",
+      "Puede favorecer la energía y el desempeño físico",
+      "Apoya el sistema inmunológico, fortificado con vitaminas y minerales"
+    ],
+    "presentacion": "Disco a base de frutas para preparar bebida, 30 unidades (15 g), 30 porciones",
+    "ingredientesClave": [
+      "Maca",
+      "Maca roja",
+      "Maca negra",
+      "Guaraná",
+      "Borojó",
+      "Chontaduro"
+    ]
+  },
+  {
+    "id": "lp-141",
+    "nombre": "Extracto de Cardo + Alcachofa",
+    "claims": [
+      "Ayuda a proteger y a regenerar las funciones del hígado",
+      "Apoya la digestión y la función hepática",
+      "Contribuye a depurar el organismo de toxinas",
+      "Fórmula 100% natural"
+    ],
+    "presentacion": "Gelatina con relleno en polvo, 58 g, aprox. 50 porciones (100 unidades)",
+    "ingredientesClave": [
+      "Cardo mariano",
+      "Alcachofa"
+    ]
+  },
+  {
+    "id": "lp-142",
+    "nombre": "Monk Fruit",
+    "claims": [
+      "Endulzante líquido natural, alternativa al azúcar",
+      "Bajo en calorías, sin azúcar añadida",
+      "Apto para dietas keto y, bajo supervisión médica, para diabéticos",
+      "Sin aspartamo ni colorantes artificiales"
+    ],
+    "presentacion": "Endulzante líquido, 30 mL, rinde hasta 300 porciones",
+    "ingredientesClave": [
+      "Fruto del monje (monk fruit)"
+    ]
+  },
+  {
+    "id": "lp-143",
+    "nombre": "Espirulina",
+    "claims": [
+      "Fortalece el sistema inmunológico",
+      "Puede ayudar a mejorar la salud de la piel",
+      "Fuente natural de energía",
+      "Apoya la salud y el bienestar general"
+    ],
+    "presentacion": "Gelatina con relleno en polvo, 58 g, aprox. 50 porciones (100 unidades)",
+    "ingredientesClave": [
+      "Espirulina"
+    ]
   }
 ]
