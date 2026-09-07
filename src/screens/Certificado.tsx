@@ -81,7 +81,7 @@ export default function Certificado() {
           ))}
 
           <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-10 py-8">
-            <img src={logo} alt="Tienda Naturista La Casa Verde" className="w-14 h-14 object-contain mb-2" />
+            <img src={logo} alt="Tienda Naturista La Casa Verde" className="w-14 h-14 object-contain rounded-full mb-2" />
 
             <p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-[var(--color-seal-gold-dark)]">
               Tienda Naturista La Casa Verde

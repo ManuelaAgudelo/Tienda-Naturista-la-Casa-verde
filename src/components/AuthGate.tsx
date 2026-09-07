@@ -11,7 +11,7 @@ export default function AuthGate({ children }: { children: ReactNode }) {
   if (cargando) {
     return (
       <div className="min-h-dvh flex items-center justify-center bg-[var(--color-bg)]">
-        <img src={logo} alt="" className="w-14 h-14 object-contain animate-pulse" />
+        <img src={logo} alt="" className="w-14 h-14 object-contain rounded-full animate-pulse" />
       </div>
     )
   }

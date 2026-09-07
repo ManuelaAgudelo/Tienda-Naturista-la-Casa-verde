@@ -22,7 +22,7 @@ export default function Inicio() {
         >
           <LogOut size={14} /> Salir
         </button>
-        <img src={logo} alt="Tienda Naturista La Casa Verde" className="w-24 h-24 object-contain mb-3" />
+        <img src={logo} alt="Tienda Naturista La Casa Verde" className="w-24 h-24 object-contain rounded-full mb-3" />
         <h1 className="text-2xl font-semibold text-[var(--color-ink)]">Tienda Naturista La Casa Verde</h1>
         <p className="text-sm text-[var(--color-ink-muted)] mt-1 max-w-xs">
           Aprende, consulta y fortalece tus conocimientos sobre el mundo naturista.
