@@ -6,9 +6,12 @@ import { buscarClase, MODULOS } from '../data/curso'
 import { TIENDAS } from '../data/tiendas'
 import { Card, ProgressBar } from '../components/ui'
 import { supabase } from '../lib/supabase'
+import { useProfile } from '../lib/useProfile'
 
 export default function Inicio() {
   const { completadasCount, totalActivas, porcentaje, ultimaClaseId } = useProgreso()
+  const { nombre } = useProfile()
+  const primerNombre = nombre?.trim().split(' ')[0]
   const ultima = ultimaClaseId ? buscarClase(ultimaClaseId) : null
   const primeraClase = MODULOS[0].clases[0]
   const continuarHacia = ultima ? ultima.clase : primeraClase
@@ -22,9 +25,14 @@ export default function Inicio() {
         >
           <LogOut size={14} /> Salir
         </button>
-        <img src={logo} alt="Tienda Naturista La Casa Verde" className="w-24 h-24 object-contain rounded-full mb-3" />
-        <h1 className="text-2xl font-semibold text-[var(--color-ink)]">Tienda Naturista La Casa Verde</h1>
-        <p className="text-sm text-[var(--color-ink-muted)] mt-1 max-w-xs">
+        <img src={logo} alt="Tienda Naturista La Casa Verde" className="w-20 h-20 object-contain rounded-full mb-3" />
+        <h1 className="text-2xl font-semibold text-[var(--color-ink)]">
+          {primerNombre ? `¡Hola, ${primerNombre}! 👋` : '¡Hola! 👋'}
+        </h1>
+        <p className="text-xs font-semibold uppercase tracking-wide text-[var(--color-primary-dark)] mt-1">
+          Tienda Naturista La Casa Verde
+        </p>
+        <p className="text-sm text-[var(--color-ink-muted)] mt-2 max-w-xs">
           Aprende, consulta y fortalece tus conocimientos sobre el mundo naturista.
         </p>
       </div>
