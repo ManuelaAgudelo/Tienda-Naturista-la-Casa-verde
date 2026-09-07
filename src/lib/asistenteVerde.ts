@@ -118,6 +118,82 @@ const DIAGNOSTICO_A_PRODUCTOS: Record<string, string[]> = {
   'agrieras': ['Ulcik', 'Gast-Calen'],
 }
 
+// Consejos GENERALES de bienestar (hidratación, alimentación, descanso) — no son afirmaciones
+// sobre ningún producto puntual, son recomendaciones de salud ampliamente conocidas (el tipo de
+// cosas que dice cualquier folleto de una droguería). Se muestran como complemento aparte, nunca
+// mezcladas con los beneficios que el fabricante sí respalda.
+const CONSEJOS_SITUACION: Record<string, string[]> = {
+  'purgar': [
+    'Evita la leche y sus derivados mientras estás en el proceso.',
+    'Toma abundante agua, suero oral o agua de panela durante el día.',
+    'Prefiere comidas livianas; evita los fritos y lo muy condimentado.',
+  ],
+  'purga': ['__ver purgar__'],
+  'purgante': ['__ver purgar__'],
+  'desparasitar': ['__ver purgar__'],
+  'parasitos': ['__ver purgar__'],
+  'lombrices': ['__ver purgar__'],
+  'gastritis': [
+    'Evita el café, las bebidas con gas y el alcohol.',
+    'Come porciones pequeñas y más seguido, en vez de comidas abundantes.',
+    'Evita acostarte inmediatamente después de comer.',
+  ],
+  'ulcera': ['__ver gastritis__'],
+  'agrieras': ['__ver gastritis__'],
+  'reflujo': ['__ver gastritis__'],
+  'hipertension': [
+    'Reduce el consumo de sal y de alimentos procesados o embutidos.',
+    'Mantente bien hidratado y evita el exceso de café.',
+  ],
+  'presion alta': ['__ver hipertension__'],
+  'diabetes': [
+    'Evita el azúcar y las harinas refinadas.',
+    'Distribuye tus comidas en porciones pequeñas durante el día.',
+  ],
+  'azucar alta': ['__ver diabetes__'],
+  'glucosa alta': ['__ver diabetes__'],
+  'estres': [
+    'Busca momentos de descanso y una buena calidad de sueño.',
+    'La actividad física suave y la respiración consciente pueden ayudar como complemento.',
+  ],
+  'ansiedad': ['__ver estres__'],
+  'higado graso': [
+    'Evita las comidas grasosas, muy fritas y el alcohol.',
+    'Prefiere alimentos ricos en fibra como frutas y verduras.',
+  ],
+  'bilis': ['__ver higado graso__'],
+  'cirrosis': ['__ver higado graso__'],
+  'bronquitis': [
+    'Mantente bien hidratado con líquidos calientes (agua con limón, infusiones).',
+    'Descansa lo suficiente para que tu cuerpo se recupere.',
+    'Evita los ambientes con humo o mucho polvo.',
+  ],
+  'sinusitis': ['__ver bronquitis__'],
+  'rinitis': ['__ver bronquitis__'],
+  'artritis': [
+    'Evita el sedentarismo prolongado; el movimiento suave ayuda a las articulaciones.',
+    'Mantener un peso saludable ayuda a no sobrecargar las articulaciones.',
+  ],
+  'artrosis': ['__ver artritis__'],
+}
+
+function consejosParaSituacion(texto: string): string[] | null {
+  const q = normalizar(texto)
+  const claves = Object.keys(CONSEJOS_SITUACION).sort((a, b) => b.length - a.length)
+  for (const clave of claves) {
+    if (contienePalabraOFrase(q, clave)) {
+      let consejos = CONSEJOS_SITUACION[clave]
+      // resolver los alias "__ver X__" sin duplicar el mismo arreglo en el mapa
+      if (consejos[0]?.startsWith('__ver ')) {
+        const referencia = consejos[0].replace('__ver ', '').replace('__', '')
+        consejos = CONSEJOS_SITUACION[referencia] ?? []
+      }
+      return consejos.length > 0 ? consejos : null
+    }
+  }
+  return null
+}
+
 function buscarPorDiagnostico(texto: string): ProductoLineaPropia[] | null {
   const q = normalizar(texto)
   const claves = Object.keys(DIAGNOSTICO_A_PRODUCTOS).sort((a, b) => b.length - a.length)
@@ -133,12 +209,21 @@ function buscarPorDiagnostico(texto: string): ProductoLineaPropia[] | null {
   return null
 }
 
-function formatearRecomendacionDiagnostico(productos: ProductoLineaPropia[]): string {
+function formatearRecomendacionDiagnostico(productos: ProductoLineaPropia[], consejos: string[] | null): string {
   const lineas = ['🌿 Esto es lo que tenemos que puede ayudar como complemento:', '']
   productos.forEach(p => {
     lineas.push(`• ${p.nombre}${p.claims[0] ? ` — ${p.claims[0]}` : ''}`)
   })
-  lineas.push('', 'Pregúntame por el nombre de cualquiera para ver todos sus detalles.', '', RECORDATORIO_MEDICO)
+  if (consejos && consejos.length > 0) {
+    lineas.push('', 'CONSEJOS GENERALES (no son del producto, son de cuidado general):')
+    consejos.forEach(c => lineas.push(`• ${c}`))
+  }
+  lineas.push(
+    '',
+    'Pregúntame por el nombre de cualquiera para ver todos sus detalles. Para saber cómo tomarlo, sigue las indicaciones del empaque o pregunta en tu tienda La Casa Verde más cercana.',
+    '',
+    RECORDATORIO_MEDICO,
+  )
   return lineas.join('\n')
 }
 
@@ -353,9 +438,12 @@ function formatearProducto(p: Producto): string {
     lineas.push('Todavía no tengo la descripción oficial detallada de este producto.', '')
   }
   lineas.push(`CATEGORÍA: ${p.categoria}`)
-  lineas.push('', RECORDATORIO_MEDICO)
+  lineas.push('', COMO_TOMARLO, '', RECORDATORIO_MEDICO)
   return lineas.join('\n')
 }
+
+const COMO_TOMARLO =
+  '¿CÓMO SE TOMA? Sigue siempre las indicaciones de uso que trae el empaque del producto. Si tienes dudas sobre la cantidad o la frecuencia, pregunta directamente en tu tienda La Casa Verde más cercana — ahí te orientan según tu caso.'
 
 function formatearProductoLineaPropia(p: ProductoLineaPropia): string {
   const lineas = [`🌿 ${p.nombre}`, '']
@@ -366,7 +454,7 @@ function formatearProductoLineaPropia(p: ProductoLineaPropia): string {
   }
   if (p.ingredientesClave) lineas.push(`INGREDIENTES: ${p.ingredientesClave.join(', ')}`)
   if (p.presentacion) lineas.push(`PRESENTACIÓN: ${p.presentacion}`)
-  lineas.push('', RECORDATORIO_MEDICO)
+  lineas.push('', COMO_TOMARLO, '', RECORDATORIO_MEDICO)
   return lineas.join('\n')
 }
 
@@ -400,7 +488,7 @@ export function responderAsistente(mensaje: string): string {
   if (categoria) return formatearListaCategoria(categoria)
 
   const porDiagnostico = buscarPorDiagnostico(texto)
-  if (porDiagnostico) return formatearRecomendacionDiagnostico(porDiagnostico)
+  if (porDiagnostico) return formatearRecomendacionDiagnostico(porDiagnostico, consejosParaSituacion(texto))
 
   if (contienePalabraOFrase(texto, 'tienda') || contienePalabraOFrase(texto, 'tiendas') || contienePalabraOFrase(texto, 'sucursal')) {
     return '📍 ¡Con gusto te ayudo a encontrarla! Ve a la pestaña "Tiendas" aquí abajo y escribe tu ciudad o municipio — ahí tengo el listado completo con dirección y teléfono de cada una.'
