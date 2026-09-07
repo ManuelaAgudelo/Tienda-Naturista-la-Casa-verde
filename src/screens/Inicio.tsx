@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { GraduationCap, MessageCircle, MapPin, ArrowRight, LogOut, Award } from 'lucide-react'
-import logo from '../assets/logo.png'
+import logo from '../assets/logo.jpg'
 import { useProgreso } from '../lib/progreso'
 import { buscarClase, MODULOS } from '../data/curso'
 import { TIENDAS } from '../data/tiendas'
@@ -22,8 +22,8 @@ export default function Inicio() {
         >
           <LogOut size={14} /> Salir
         </button>
-        <img src={logo} alt="Mi Tienda Naturista - La Casa Verde" className="w-24 h-24 object-contain mb-3" />
-        <h1 className="text-2xl font-semibold text-[var(--color-ink)]">Mi Tienda Naturista</h1>
+        <img src={logo} alt="Tienda Naturista La Casa Verde" className="w-24 h-24 object-contain mb-3" />
+        <h1 className="text-2xl font-semibold text-[var(--color-ink)]">Tienda Naturista La Casa Verde</h1>
         <p className="text-sm text-[var(--color-ink-muted)] mt-1 max-w-xs">
           Aprende, consulta y fortalece tus conocimientos sobre el mundo naturista.
         </p>

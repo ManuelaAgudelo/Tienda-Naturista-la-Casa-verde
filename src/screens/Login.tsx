@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import logo from '../assets/logo.png'
+import logo from '../assets/logo.jpg'
 import { supabase } from '../lib/supabase'
 import { PrimaryButton } from '../components/ui'
 
@@ -27,7 +27,7 @@ export default function Login({ onIrARegistro }: { onIrARegistro: () => void }) 
   return (
     <div className="min-h-dvh flex flex-col justify-center px-6 py-10 bg-[var(--color-bg)]">
       <div className="flex flex-col items-center mb-6">
-        <img src={logo} alt="La Casa Verde" className="w-16 h-16 object-contain mb-3" />
+        <img src={logo} alt="Tienda Naturista La Casa Verde" className="w-16 h-16 object-contain mb-3" />
         <h1 className="text-xl font-semibold text-[var(--color-ink)]">Bienvenido de nuevo</h1>
         <p className="text-sm text-[var(--color-ink-muted)] text-center mt-1">
           Inicia sesión para continuar tu curso.

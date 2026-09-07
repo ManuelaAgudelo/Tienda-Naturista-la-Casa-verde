@@ -2,7 +2,7 @@ import { useState, type ReactNode } from 'react'
 import { useAuth } from '../lib/useAuth'
 import Registro from '../screens/Registro'
 import Login from '../screens/Login'
-import logo from '../assets/logo.png'
+import logo from '../assets/logo.jpg'
 
 export default function AuthGate({ children }: { children: ReactNode }) {
   const { cargando, autenticado } = useAuth()
