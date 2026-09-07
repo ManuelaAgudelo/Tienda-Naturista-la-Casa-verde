@@ -1,0 +1,14 @@
+{
+  "name": "Mi Tienda Naturista",
+  "short_name": "Mi Tienda Naturista",
+  "description": "Curso, asistente y directorio de La Casa Verde",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FAFAF6",
+  "theme_color": "#3E9B4F",
+  "icons": [
+    { "src": "/logo.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/logo.png", "sizes": "500x500", "type": "image/png" },
+    { "src": "/logo.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
