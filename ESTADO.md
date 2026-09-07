@@ -1,8 +1,23 @@
 # ESTADO — Mi Tienda Naturista / La Casa Verde
 
+## 🔖 CHECKPOINT (2026-09-07, publicada con registro real — lista para compartir)
+App publicada y funcionando en **https://tienda-naturista-la-casa-verde.vercel.app**, con
+GitHub (`ManuelaAgudelo/Tienda-Naturista-la-Casa-verde`) → Vercel conectado (cada push a `main`
+redespliega solo). Se agregó registro/inicio de sesión real con Supabase (proyecto `casa-verde`):
+nombre, correo y teléfono quedan guardados en la tabla `profiles`; la sesión se guarda sola en el
+dispositivo tras el primer registro. Verificado extremo a extremo en producción.
+- ⚠️ Bug encontrado y resuelto: al pegar la `VITE_SUPABASE_ANON_KEY` en Vercel, quedó guardado el
+  texto enmascarado (los puntitos •••• que Vercel muestra para ocultar el valor) en vez de la
+  clave real — el registro fallaba en producción (pero funcionaba local) sin ningún error visible
+  en consola. Se detectó revisando directamente el bundle publicado (buscando el fragmento
+  `eyJhbGci` del JWT). Si vuelve a pasar algo similar: comparar el HTML de producción
+  (`curl` al dominio) contra el valor esperado antes de asumir que el código tiene un bug.
+- Pendiente de decisión futura: migrar el progreso del curso (hoy en `localStorage`) a la cuenta
+  del usuario en Supabase, para que sea multi-dispositivo. No bloqueante para compartir la app.
+
 ## Fase actual
-Primera versión funcional y visual construida (mini app educativa, sin login ni pagos, tal como
-lo pidió el dueño). Pendiente: que el dueño la pruebe y dé el visto bueno antes de pulir/publicar.
+Primera versión funcional y visual construida y PUBLICADA. Tiene registro real (nombre, correo,
+teléfono) — ya se puede compartir el link con cualquier persona.
 
 ## Qué existe hoy
 - **Stack**: Vite + React + TypeScript + Tailwind v4 + react-router-dom + lucide-react.
