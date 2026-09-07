@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect } from 'react'
 import { Send, Leaf } from 'lucide-react'
-import { responderAsistente, MENSAJE_BIENVENIDA, SUBTITULO_BIENVENIDA, AVISO_SEGURIDAD } from '../lib/asistenteVerde'
+import { responderAsistente, MENSAJE_BIENVENIDA, SUBTITULO_BIENVENIDA, AVISO_SEGURIDAD, type ContextoConversacion } from '../lib/asistenteVerde'
 
 interface Mensaje {
   id: string
@@ -11,6 +11,7 @@ interface Mensaje {
 export default function AsistenteVerde() {
   const [mensajes, setMensajes] = useState<Mensaje[]>([])
   const [texto, setTexto] = useState('')
+  const [contexto, setContexto] = useState<ContextoConversacion | null>(null)
   const finRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -22,10 +23,12 @@ export default function AsistenteVerde() {
     if (!contenido) return
     const idUsuario = crypto.randomUUID()
     const idAsistente = crypto.randomUUID()
+    const respuesta = responderAsistente(contenido, contexto)
+    setContexto(respuesta.contexto)
     setMensajes(prev => [
       ...prev,
       { id: idUsuario, autor: 'usuario', texto: contenido },
-      { id: idAsistente, autor: 'asistente', texto: responderAsistente(contenido) },
+      { id: idAsistente, autor: 'asistente', texto: respuesta.texto },
     ])
     setTexto('')
   }

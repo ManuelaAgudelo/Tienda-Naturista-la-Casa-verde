@@ -319,6 +319,15 @@ function buscarLineaPropiaPorNombre(texto: string): ProductoLineaPropia | null {
   return null
 }
 
+// Palabras con las que alguien se refiere al producto del que se acaba de hablar
+// (ej. "¿cómo se toma ESTE?", "¿ESO sirve para la tos?") en vez de repetir su nombre.
+const PALABRAS_REFERENCIALES = ['este', 'esta', 'esto', 'estos', 'estas', 'ese', 'esa', 'eso', 'esos', 'esas', 'mismo', 'misma', 'dicho', 'dicha']
+
+function esConsultaReferencial(texto: string): boolean {
+  const q = normalizar(texto)
+  return PALABRAS_REFERENCIALES.some(p => contienePalabraOFrase(q, p))
+}
+
 function contienePalabraOFrase(texto: string, clave: string): boolean {
   const claveNorm = normalizar(clave)
   if (claveNorm.includes(' ')) return texto.includes(claveNorm)
@@ -494,39 +503,85 @@ function formatearListaCategoria(categoriaSlug: string): string {
   return `🌿 ¡Claro! Esto es lo que tenemos para ${nombreCategoria.toLowerCase()}:\n\n${lista}${extra}\n\nPregúntame por el nombre de cualquiera para conocer más detalles.`
 }
 
-export function responderAsistente(mensaje: string): string {
+// Recuerda de qué producto se habló en el último turno, para que preguntas de seguimiento como
+// "¿cómo se toma ESTE?" o "¿ESO sirve para la tos?" se resuelvan sobre ese mismo producto en vez
+// de buscar la palabra suelta en todo el catálogo.
+export interface ContextoConversacion {
+  tipo: 'catalogo' | 'propio'
+  nombre: string
+}
+
+export interface RespuestaAsistente {
+  texto: string
+  contexto: ContextoConversacion | null
+}
+
+export function responderAsistente(mensaje: string, contextoPrevio: ContextoConversacion | null = null): RespuestaAsistente {
   const texto = mensaje.toLowerCase().trim()
 
   if (SINTOMAS_ALERTA.some(s => texto.includes(s))) {
-    return 'Esto suena a algo que necesita atención médica inmediata. Por favor busca ayuda profesional o dirígete a un servicio de urgencias — no puedo ayudarte a resolver esto por aquí.'
+    return {
+      texto: 'Esto suena a algo que necesita atención médica inmediata. Por favor busca ayuda profesional o dirígete a un servicio de urgencias — no puedo ayudarte a resolver esto por aquí.',
+      contexto: contextoPrevio,
+    }
   }
 
   if (SALUDOS.some(s => texto.includes(s)) && texto.length < 25) {
-    return '¡Hola! 🌿 Qué bueno tenerte por aquí. Pregúntame por el nombre de un producto (ej. "Aceite de aguacate"), por una molestia o necesidad (ej. "¿qué tienen para la digestión?"), o si buscas una tienda cerca de ti. Estoy para ayudarte 😊'
+    return {
+      texto: '¡Hola! 🌿 Qué bueno tenerte por aquí. Pregúntame por el nombre de un producto (ej. "Aceite de aguacate"), por una molestia o necesidad (ej. "¿qué tienen para la digestión?"), o si buscas una tienda cerca de ti. Estoy para ayudarte 😊',
+      contexto: contextoPrevio,
+    }
   }
 
   const producto = buscarProductoPorNombre(texto)
-  if (producto) return formatearProducto(producto)
+  if (producto) return { texto: formatearProducto(producto), contexto: { tipo: 'catalogo', nombre: producto.nombre } }
 
   const productoPropio = buscarLineaPropiaPorNombre(texto)
-  if (productoPropio) return formatearProductoLineaPropia(productoPropio)
+  if (productoPropio) return { texto: formatearProductoLineaPropia(productoPropio), contexto: { tipo: 'propio', nombre: productoPropio.nombre } }
+
+  // Pregunta de seguimiento sobre el producto del que se acaba de hablar
+  if (contextoPrevio && esConsultaReferencial(texto)) {
+    const productoContexto = contextoPrevio.tipo === 'catalogo'
+      ? PRODUCTOS.find(p => p.nombre === contextoPrevio.nombre)
+      : LINEA_PROPIA.find(p => p.nombre === contextoPrevio.nombre)
+    if (productoContexto) {
+      const info = contextoPrevio.tipo === 'catalogo'
+        ? formatearProducto(productoContexto as Producto)
+        : formatearProductoLineaPropia(productoContexto as ProductoLineaPropia)
+      return { texto: info, contexto: contextoPrevio }
+    }
+  }
 
   const categoria = buscarCategoria(texto)
-  if (categoria) return formatearListaCategoria(categoria)
+  if (categoria) return { texto: formatearListaCategoria(categoria), contexto: null }
 
   const porDiagnostico = buscarPorDiagnostico(texto)
-  if (porDiagnostico) return formatearRecomendacionDiagnostico(porDiagnostico, consejosParaSituacion(texto))
+  if (porDiagnostico) {
+    return {
+      texto: formatearRecomendacionDiagnostico(porDiagnostico, consejosParaSituacion(texto)),
+      contexto: null,
+    }
+  }
 
   if (contienePalabraOFrase(texto, 'tienda') || contienePalabraOFrase(texto, 'tiendas') || contienePalabraOFrase(texto, 'sucursal')) {
-    return '📍 ¡Con gusto te ayudo a encontrarla! Ve a la pestaña "Tiendas" aquí abajo y escribe tu ciudad o municipio — ahí tengo el listado completo con dirección y teléfono de cada una.'
+    return {
+      texto: '📍 ¡Con gusto te ayudo a encontrarla! Ve a la pestaña "Tiendas" aquí abajo y escribe tu ciudad o municipio — ahí tengo el listado completo con dirección y teléfono de cada una.',
+      contexto: contextoPrevio,
+    }
   }
 
   if (contienePalabraOFrase(texto, 'receta') || contienePalabraOFrase(texto, 'recetas')) {
-    return 'Por ahora no tengo recetas cargadas 🍃 — en cuanto La Casa Verde las publique, te las puedo compartir aquí mismo. Mientras tanto, puedo contarte sobre cualquiera de nuestros productos naturales, ¡pregúntame el que quieras!'
+    return {
+      texto: 'Por ahora no tengo recetas cargadas 🍃 — en cuanto La Casa Verde las publique, te las puedo compartir aquí mismo. Mientras tanto, puedo contarte sobre cualquiera de nuestros productos naturales, ¡pregúntame el que quieras!',
+      contexto: contextoPrevio,
+    }
   }
 
   if (contienePalabraOFrase(texto, 'naturismo') || contienePalabraOFrase(texto, 'medicina natural')) {
-    return '🌱 Todo eso lo explicamos a fondo en el Módulo 2 de tu curso, "Introducción al Naturismo" — ahí vas a entender la historia y los fundamentos de la medicina natural paso a paso. Y si quieres, aquí mismo te cuento sobre algún producto puntual o para qué molestia buscas ayuda natural.'
+    return {
+      texto: '🌱 Todo eso lo explicamos a fondo en el Módulo 2 de tu curso, "Introducción al Naturismo" — ahí vas a entender la historia y los fundamentos de la medicina natural paso a paso. Y si quieres, aquí mismo te cuento sobre algún producto puntual o para qué molestia buscas ayuda natural.',
+      contexto: contextoPrevio,
+    }
   }
 
   const sugerencia = sugerirProductoParecido(texto)
@@ -534,13 +589,19 @@ export function responderAsistente(mensaje: string): string {
     const info = sugerencia.tipo === 'catalogo'
       ? formatearProducto(sugerencia.item as Producto)
       : formatearProductoLineaPropia(sugerencia.item as ProductoLineaPropia)
-    return `¿Quisiste decir "${sugerencia.nombre}"? 🌿 Aquí te cuento sobre ese:\n\n${info}`
+    return {
+      texto: `¿Quisiste decir "${sugerencia.nombre}"? 🌿 Aquí te cuento sobre ese:\n\n${info}`,
+      contexto: { tipo: sugerencia.tipo, nombre: sugerencia.nombre },
+    }
   }
 
   const porTextoLibre = buscarPorTextoLibre(texto)
-  if (porTextoLibre) return formatearResultadoTextoLibre(porTextoLibre)
+  if (porTextoLibre) return { texto: formatearResultadoTextoLibre(porTextoLibre), contexto: null }
 
-  return `${SIN_INFORMACION} 🌿 Intenta con el nombre de un producto (aunque no estés segura de cómo se escribe, yo te ayudo a encontrarlo), o cuéntame para qué molestia o necesidad buscas algo natural.`
+  return {
+    texto: `${SIN_INFORMACION} 🌿 Intenta con el nombre de un producto (aunque no estés segura de cómo se escribe, yo te ayudo a encontrarlo), o cuéntame para qué molestia o necesidad buscas algo natural.`,
+    contexto: contextoPrevio,
+  }
 }
 
 export const MENSAJE_BIENVENIDA = '¡Hola! Soy tu Asistente Verde 🌿'
