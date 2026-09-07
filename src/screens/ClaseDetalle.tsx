@@ -16,7 +16,7 @@ export default function ClaseDetalle() {
   const { claseId } = useParams<{ claseId: string }>()
   const navigate = useNavigate()
   const encontrado = claseId ? buscarClase(claseId) : null
-  const { estaCompletada, marcarCompletada, registrarVisita } = useProgreso()
+  const { estaCompletada, marcarCompletada, registrarVisita, completadasCount, totalActivas } = useProgreso()
   const [visorAbierto, setVisorAbierto] = useState<string | null>(null)
 
   useEffect(() => {
@@ -101,7 +101,13 @@ export default function ClaseDetalle() {
 
       <div className="px-5 mt-5">
         <button
-          onClick={() => marcarCompletada(clase.id, !completada)}
+          onClick={() => {
+            const completando = !completada
+            marcarCompletada(clase.id, completando)
+            if (completando && completadasCount + 1 >= totalActivas) {
+              navigate('/certificado')
+            }
+          }}
           className={`w-full h-12 rounded-[var(--radius-button)] font-semibold text-[15px] flex items-center justify-center gap-2 active:scale-[0.97] transition-all border ${
             completada
               ? 'bg-[var(--color-primary-light)] text-[var(--color-primary-dark)] border-[var(--color-primary-light)]'

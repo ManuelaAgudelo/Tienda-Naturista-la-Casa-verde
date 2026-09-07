@@ -17,6 +17,9 @@
   --color-warn-light: #FBEEDF;
   --color-danger: #C0392B;
 
+  --color-seal-gold: #C9A227;
+  --color-seal-gold-dark: #8A6D14;
+
   --radius-card: 1.1rem;
   --radius-button: 0.85rem;
   --radius-chip: 999px;
@@ -57,4 +60,14 @@
 @layer utilities {
   .no-scrollbar::-webkit-scrollbar { display: none; }
   .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+}
+
+@media print {
+  @page {
+    size: landscape;
+    margin: 0.4cm;
+  }
+  body {
+    background: var(--color-surface);
+  }
 }

@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { GraduationCap, MessageCircle, MapPin, ArrowRight, LogOut } from 'lucide-react'
+import { GraduationCap, MessageCircle, MapPin, ArrowRight, LogOut, Award } from 'lucide-react'
 import logo from '../assets/logo.png'
 import { useProgreso } from '../lib/progreso'
 import { buscarClase, MODULOS } from '../data/curso'
@@ -92,6 +92,21 @@ export default function Inicio() {
             <ArrowRight size={18} className="text-[var(--color-ink-muted)] shrink-0" />
           </Card>
         </Link>
+
+        {porcentaje === 100 && (
+          <Link to="/certificado">
+            <Card className="p-4 flex items-center gap-3 active:scale-[0.98] transition-transform border-[var(--color-primary)]">
+              <span className="w-11 h-11 rounded-full bg-[var(--color-primary-light)] flex items-center justify-center shrink-0">
+                <Award size={22} className="text-[var(--color-primary-dark)]" />
+              </span>
+              <div className="flex-1 min-w-0">
+                <p className="font-semibold text-[15px]">Tu certificado</p>
+                <p className="text-xs text-[var(--color-ink-muted)]">¡Completaste el curso! 🎉</p>
+              </div>
+              <ArrowRight size={18} className="text-[var(--color-ink-muted)] shrink-0" />
+            </Card>
+          </Link>
+        )}
       </div>
     </div>
   )

@@ -11,7 +11,7 @@ const items = [
 export default function BottomNav() {
   return (
     <nav
-      className="fixed bottom-0 inset-x-0 z-40 bg-[var(--color-surface)] border-t border-[var(--color-border)] pb-[env(safe-area-inset-bottom)]"
+      className="fixed bottom-0 inset-x-0 z-40 bg-[var(--color-surface)] border-t border-[var(--color-border)] pb-[env(safe-area-inset-bottom)] print:hidden"
       aria-label="Navegación principal"
     >
       <ul className="grid grid-cols-4">

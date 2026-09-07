@@ -6,6 +6,7 @@ import ModuloDetalle from './screens/ModuloDetalle'
 import ClaseDetalle from './screens/ClaseDetalle'
 import AsistenteVerde from './screens/AsistenteVerde'
 import Tiendas from './screens/Tiendas'
+import Certificado from './screens/Certificado'
 
 export default function App() {
   return (
@@ -17,6 +18,7 @@ export default function App() {
         <Route path="/curso/:claseId" element={<ClaseDetalle />} />
         <Route path="/asistente" element={<AsistenteVerde />} />
         <Route path="/tiendas" element={<Tiendas />} />
+        <Route path="/certificado" element={<Certificado />} />
       </Routes>
       <BottomNav />
     </div>
