@@ -427,6 +427,25 @@ function sanitizarDescripcion(texto: string): string {
 const RECORDATORIO_MEDICO =
   'Si los síntomas persisten, consulta a tu médico.'
 
+// Mejor momento del día para tomar suplementos conocidos — es información general y ampliamente
+// aceptada sobre el TIPO de suplemento (magnesio, colágeno, omega, probióticos...), no una dosis.
+// No se menciona ninguna marca externa a La Casa Verde, salvo remedios caseros de cocina (agua de
+// canela, limón, etc.) cuando el propio producto los sugiere.
+const MOMENTO_IDEAL: [RegExp, string][] = [
+  [/magnesio/i, 'Muchas personas prefieren tomar el magnesio en la noche, ya que ayuda a relajar el cuerpo antes de dormir.'],
+  [/colageno|colágeno/i, 'El colágeno se suele tomar en ayunas (antes del desayuno) para favorecer su absorción.'],
+  [/omega/i, 'El Omega 3 se recomienda tomar junto con las comidas, para ayudar a la digestión y evitar molestias estomacales.'],
+  [/prebiotic|probiotic/i, 'Los probióticos suelen tomarse en ayunas, antes del desayuno, para que lleguen mejor al intestino.'],
+  [/vitamina c/i, 'La vitamina C se suele tomar en la mañana, ya que puede dar una sensación de energía.'],
+  [/ashwagandha|aswagandha/i, 'La ashwagandha suele tomarse en la noche, ya que ayuda a relajar el cuerpo.'],
+  [/omega 3|aceite de oregano|aceite de orégano/i, 'Se recomienda tomarlo junto con alguna comida para facilitar su digestión.'],
+]
+
+function momentoIdealPara(nombre: string): string | null {
+  const encontrado = MOMENTO_IDEAL.find(([patron]) => patron.test(nombre))
+  return encontrado ? encontrado[1] : null
+}
+
 function formatearProducto(p: Producto): string {
   const lineas = [
     `🌿 ${p.nombre}`,
@@ -438,7 +457,10 @@ function formatearProducto(p: Producto): string {
     lineas.push('Todavía no tengo la descripción oficial detallada de este producto.', '')
   }
   lineas.push(`CATEGORÍA: ${p.categoria}`)
-  lineas.push('', COMO_TOMARLO, '', RECORDATORIO_MEDICO)
+  const momento = momentoIdealPara(p.nombre)
+  lineas.push('', COMO_TOMARLO)
+  if (momento) lineas.push('', `⏰ ${momento}`)
+  lineas.push('', RECORDATORIO_MEDICO)
   return lineas.join('\n')
 }
 
@@ -454,7 +476,10 @@ function formatearProductoLineaPropia(p: ProductoLineaPropia): string {
   }
   if (p.ingredientesClave) lineas.push(`INGREDIENTES: ${p.ingredientesClave.join(', ')}`)
   if (p.presentacion) lineas.push(`PRESENTACIÓN: ${p.presentacion}`)
-  lineas.push('', COMO_TOMARLO, '', RECORDATORIO_MEDICO)
+  const momento = momentoIdealPara(p.nombre)
+  lineas.push('', COMO_TOMARLO)
+  if (momento) lineas.push('', `⏰ ${momento}`)
+  lineas.push('', RECORDATORIO_MEDICO)
   return lineas.join('\n')
 }
 
