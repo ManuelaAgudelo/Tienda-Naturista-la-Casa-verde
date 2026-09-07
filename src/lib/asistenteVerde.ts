@@ -56,6 +56,11 @@ const SINONIMOS_CATEGORIA: Record<string, string> = {
   'homeopatico': 'sistema-homeopatico',
   'homeopatia': 'sistema-homeopatico',
   'linfatico': 'sistema-linfatico',
+  'laxante': 'sistema-digestivo',
+  'higado': 'sistema-digestivo',
+  'colon': 'sistema-digestivo',
+  'reflujo': 'sistema-digestivo',
+  'acidez': 'sistema-digestivo',
 }
 
 // Enfermedades/diagnósticos que el usuario puede nombrar -> productos de la línea propia que,
@@ -98,6 +103,19 @@ const DIAGNOSTICO_A_PRODUCTOS: Record<string, string[]> = {
   'sinusitis': ['Luffa Oper 6CH Spray Nasal', 'Argentin'],
   'rinitis': ['Argentin'],
   'bronquitis': ["Bronki'Flu", 'Eukmeil'],
+  // Palabras coloniales / de pueblo que la gente usa en vez del término médico:
+  'purgar': ['Chungwa', 'Casklax', 'Grabiola'],
+  'purga': ['Chungwa', 'Casklax', 'Grabiola'],
+  'purgante': ['Chungwa', 'Casklax', 'Grabiola'],
+  'desparasitar': ['Chungwa', 'Casklax', 'Grabiola'],
+  'parasitos': ['Chungwa', 'Casklax', 'Grabiola'],
+  'lombrices': ['Chungwa', 'Casklax', 'Grabiola'],
+  'limpiar la sangre': ['Zarxin', 'Radix Zarzaverde'],
+  'sangre sucia': ['Zarxin', 'Radix Zarzaverde'],
+  'bilis': ['Heplop', 'Bilax', 'Alcachofit'],
+  'empacho': ['Viscum', 'Veralverd'],
+  'hinchazon': ['Viscum', 'Veralverd'],
+  'agrieras': ['Ulcik', 'Gast-Calen'],
 }
 
 function buscarPorDiagnostico(texto: string): ProductoLineaPropia[] | null {
@@ -220,6 +238,70 @@ function contienePalabraOFrase(texto: string, clave: string): boolean {
   return new RegExp(`(^|[^a-z])${claveNorm}([^a-z]|$)`).test(texto)
 }
 
+const PALABRAS_VACIAS = new Set([
+  'que', 'para', 'de', 'del', 'la', 'el', 'los', 'las', 'un', 'una', 'unos', 'unas',
+  'tengo', 'tiene', 'tienen', 'hay', 'algo', 'sobre', 'con', 'sin', 'mi', 'tu', 'su',
+  'y', 'o', 'en', 'es', 'ser', 'dame', 'dime', 'cual', 'cuales', 'quiero', 'quisiera',
+  'necesito', 'producto', 'productos', 'me', 'puedes', 'podrias', 'recomiendas', 'recomendar',
+  'este', 'esta', 'estos', 'estas', 'como', 'sirve', 'ayuda', 'ayudar', 'buscar', 'busco',
+  'porfa', 'porfavor', 'favor', 'gracias', 'hola', 'ese', 'esa', 'lo',
+])
+
+function palabrasSignificativas(texto: string): string[] {
+  return normalizar(texto)
+    .replace(/[¿?¡!.,]/g, ' ')
+    .split(/\s+/)
+    .filter(p => p.length > 3 && !PALABRAS_VACIAS.has(p))
+}
+
+interface ResultadoTextoLibre {
+  catalogo: Producto[]
+  propios: ProductoLineaPropia[]
+}
+
+// Búsqueda amplia: cuando el mensaje no calza con nombre exacto, categoría conocida ni
+// diagnóstico mapeado, se busca la(s) palabra(s) clave dentro del contenido REAL de cada
+// producto (descripción oficial o beneficios del fabricante) en los dos catálogos. Así, algo
+// como "productos para purgar" encuentra productos aunque "purgar" no esté en ningún mapa.
+function buscarPorTextoLibre(texto: string): ResultadoTextoLibre | null {
+  const palabras = palabrasSignificativas(texto)
+  if (palabras.length === 0) return null
+
+  const puntuar = (textoObjetivo: string) => {
+    const norm = normalizar(textoObjetivo)
+    return palabras.reduce((acc, palabra) => acc + (norm.includes(palabra) ? 1 : 0), 0)
+  }
+
+  const catalogo = PRODUCTOS
+    .map(p => ({ p, score: puntuar(`${p.nombre} ${p.descripcion ?? ''}`) }))
+    .filter(x => x.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 6)
+    .map(x => x.p)
+
+  const propios = LINEA_PROPIA
+    .map(p => ({ p, score: puntuar(`${p.nombre} ${p.claims.join(' ')} ${p.ingredientesClave?.join(' ') ?? ''}`) }))
+    .filter(x => x.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 6)
+    .map(x => x.p)
+
+  if (catalogo.length === 0 && propios.length === 0) return null
+  return { catalogo, propios }
+}
+
+function formatearResultadoTextoLibre(resultado: ResultadoTextoLibre): string {
+  const lineas = ['🌿 Encontré esto que puede servirte:', '']
+  resultado.propios.slice(0, 5).forEach(p => {
+    lineas.push(`• ${p.nombre}${p.claims[0] ? ` — ${p.claims[0]}` : ''}`)
+  })
+  resultado.catalogo.slice(0, 5).forEach(p => {
+    lineas.push(`• ${p.nombre}`)
+  })
+  lineas.push('', 'Pregúntame por el nombre de cualquiera para ver todos los detalles.', '', RECORDATORIO_MEDICO)
+  return lineas.join('\n')
+}
+
 function buscarCategoria(texto: string): string | null {
   const q = normalizar(texto)
   // ordenar claves mas largas primero para priorizar frases especificas sobre palabras sueltas
@@ -339,6 +421,9 @@ export function responderAsistente(mensaje: string): string {
       : formatearProductoLineaPropia(sugerencia.item as ProductoLineaPropia)
     return `¿Quisiste decir "${sugerencia.nombre}"? 🌿 Aquí te cuento sobre ese:\n\n${info}`
   }
+
+  const porTextoLibre = buscarPorTextoLibre(texto)
+  if (porTextoLibre) return formatearResultadoTextoLibre(porTextoLibre)
 
   return `${SIN_INFORMACION} 🌿 Intenta con el nombre de un producto (aunque no estés segura de cómo se escribe, yo te ayudo a encontrarlo), o cuéntame para qué molestia o necesidad buscas algo natural.`
 }
