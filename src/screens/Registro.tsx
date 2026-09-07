@@ -62,9 +62,6 @@ export default function Registro({ onIrALogin }: { onIrALogin: () => void }) {
       <div className="flex flex-col items-center mb-6">
         <img src={logo} alt="Tienda Naturista La Casa Verde" className="w-16 h-16 object-contain rounded-full mb-3" />
         <h1 className="text-xl font-semibold text-[var(--color-ink)]">Crea tu cuenta</h1>
-        <p className="text-sm text-[var(--color-ink-muted)] text-center mt-1">
-          Es gratis, solo toma un minuto y no vuelves a hacerlo en este celular.
-        </p>
       </div>
 
       <form onSubmit={enviar} className="flex flex-col gap-3 max-w-sm w-full mx-auto">
