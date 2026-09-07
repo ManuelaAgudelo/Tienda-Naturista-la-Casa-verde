@@ -84,10 +84,10 @@ export default function Certificado() {
             <img src={logo} alt="La Casa Verde" className="w-14 h-14 object-contain mb-2" />
 
             <p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-[var(--color-seal-gold-dark)]">
-              La Casa Verde · Escuela Verde
+              Mi Tienda Naturista
             </p>
             <h1 className="font-display text-[26px] leading-tight text-[var(--color-primary-dark)] mt-1">
-              Certificado de Finalización
+              Certificado
             </h1>
 
             <div className="w-24 h-px bg-[var(--color-seal-gold)] my-3" />
@@ -108,7 +108,7 @@ export default function Certificado() {
               </div>
               <Sello />
               <div className="flex-1 text-center">
-                <p className="font-display text-[15px] text-[var(--color-ink)] border-b border-[var(--color-border)] pb-1">{FECHA_HOY}</p>
+                <p className="font-display text-[12px] whitespace-nowrap text-[var(--color-ink)] border-b border-[var(--color-border)] pb-1">{FECHA_HOY}</p>
                 <p className="text-[10px] uppercase tracking-wide text-[var(--color-ink-muted)] mt-1">Fecha</p>
               </div>
             </div>
